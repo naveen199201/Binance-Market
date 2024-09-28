@@ -1,0 +1,35 @@
+
+.app-header{
+  text-align: center;
+  margin: 1vh;
+  font-size:xx-large;
+}
+.select-options{
+  text-align: center;
+  padding: 20px;
+}
+.currency{
+  margin-inline-end: 30px;
+}
+.chart-component{
+  height: 80vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+}
+
+.chart-canva{
+  /* height: 100%; */
+  
+  display: flex;
+  justify-content: center;
+  color: white;
+  
+}
+.canva{
+  background-color:rgb(14 17 61 / 87%);
+  padding-inline-start: 20px;
+ height: 100% !important;
+ width: 100% !important;
+  
+}

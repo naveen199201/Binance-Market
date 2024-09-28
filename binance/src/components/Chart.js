@@ -1,73 +1,122 @@
 import React, { useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial';
-import 'chartjs-adapter-date-fns'; // For date handling
-import '../App.css'
+import 'chartjs-adapter-date-fns'; 
+import '../App.css';
+import zoomPlugin from 'chartjs-plugin-zoom'; 
 
-// Register necessary components for Chart.js including the financial chart types
-Chart.register(...registerables, CandlestickController, CandlestickElement);
+Chart.register(...registerables, CandlestickController, CandlestickElement, zoomPlugin);
 
 const ChartComponent = ({ chartData }) => {
-  console.log(chartData)
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
 
   useEffect(() => {
-    if (chartRef.current && chartData.length > 0) {
-      // Destroy previous chart instance to avoid canvas reuse issues
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
+    const ctx = chartRef.current.getContext('2d');
 
-      const ctx = chartRef.current.getContext('2d');
-      chartInstance.current = new Chart(ctx, {
-        type: 'candlestick',
-        data: {
-          datasets: [{
-            label: 'Candlestick Data',
-            data: chartData.map((candle) => ({
-              x: candle.t, // Timestamp
-              o: candle.o, // Open price
-              h: candle.h, // High price
-              l: candle.l, // Low price
-              c: candle.c  // Close price
-            })),
-            borderColor: '#3e95cd',
-            color: {
-              up: '#00ff00', // Color for upward candles
-              down: '#ff0000', // Color for downward candles
-              unchanged: '#999999' // Color for unchanged candles
-            }
-          }]
-        },
-        options: {
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                unit: 'minute', // Display time in minutes
-                tooltipFormat: 'MMM d, h:mm a' // Custom tooltip format for better readability
+    // Check if chartData is an array and has elements
+    if (Array.isArray(chartData) && chartData.length > 0) {
+      // Initialize the chart if it doesn't exist
+      if (!chartInstance.current) {
+        chartInstance.current = new Chart(ctx, {
+          type: 'candlestick',
+          data: {
+            datasets: [{
+              label: 'Candlestick Data',
+              data: chartData.map((candle) => ({
+                x: candle.t, 
+                o: candle.o, 
+                h: candle.h, 
+                l: candle.l, 
+                c: candle.c  
+              })),
+              color: {
+                up: '#00ff00',
+                down: '#ff0000', 
+                unchanged: '#999999' 
+              }
+            }]
+          },
+          options: {
+            scales: {
+              x: {
+                type: 'time',
+                min: chartData[chartData.length - 1].t - 1000 * 60 * 60, 
+                max: chartData[chartData.length - 1].t, 
+                time: {
+                  unit: 'minute',
+                  stepSize: 1 
+                },
+                title: {
+                  display: false,
+                  text: 'Time',
+                  color: 'black'
+                },
+                ticks: {
+                  color: 'white' 
+                }
               },
-              title: {
-                display: true,
-                text: 'Time'
+              y: {
+                title: {
+                  display: false,
+                  text: 'Price'
+                },
+                ticks: {
+                  color: 'white' 
+                }
               }
             },
-            y: {
-              title: {
-                display: true,
-                text: 'Price'
+            plugins: {
+              legend: {
+                display: false 
+              },
+              zoom: {
+                pan: {
+                  enabled: true, 
+                  mode: 'x'
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                    mode: 'x'
+                  },
+                  drag: {
+                    enabled: false 
+                  },
+                  pinch: {
+                    enabled: true 
+                  },
+                  mode: 'x', 
+                  speed: 0.2,
+                  limits: {
+                    x: { 
+                      minRange: 1000 * 60
+                    }
+                  }
+                }
               }
             }
           }
-        }
-      });
+        });
+      } else {
+        // Update chart data without destroying the instance
+        chartInstance.current.data.datasets[0].data = chartData.map((candle) => ({
+          x: candle.t, 
+          o: candle.o, 
+          h: candle.h, 
+          l: candle.l, 
+          c: candle.c  
+        }));
+
+        // Update the chart
+        chartInstance.current.update(); 
+      }
     }
   }, [chartData]);
 
   return (
     <div className='chart-canva'>
-      <canvas ref={chartRef} />
+      {chartData ? <canvas ref={chartRef} className='canva' /> : null}
     </div>
   );
 };
